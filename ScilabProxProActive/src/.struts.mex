@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Struts2Diagram version="2.0">
+  <package name="myFunction" location="1258,745" size="225,108">
+    <action name="FunInputAction" location="65,57" size="150,41">
+      <result name="Inputsucc">
+        <resourceEdge source="Inputsucc" routing="0" target="inputsucc.jsp" />
+      </result>
+    </action>
+  </package>
+  <package name="scilabTaskHost" location="295,10" size="225,350">
+    <action name="TaskAction" location="65,71" size="150,83">
+      <result name="success">
+        <resourceEdge source="success" routing="0" target="success.jsp" />
+      </result>
+      <result name="error">
+        <resourceEdge source="error" routing="0" target="success.jsp" />
+      </result>
+      <result name="input">
+        <resourceEdge source="input" routing="0" target="ScilabTask.jsp" />
+      </result>
+    </action>
+    <action name="CheckTask" location="65,236" size="150,104">
+      <result name="resultSucc">
+        <resourceEdge source="resultSucc" routing="0" target="resultSucc.jsp" />
+      </result>
+      <result name="resultFail">
+        <resourceEdge source="resultFail" routing="0" target="resultFail.jsp" />
+      </result>
+      <result name="saveSucc" />
+      <result name="saveFail" />
+    </action>
+  </package>
+  <package name="myRegister" location="33,1340" size="225,108">
+    <action name="RegisterAction" location="65,57" size="150,41">
+      <result name="Registersucc">
+        <resourceEdge source="Registersucc" routing="0" target="registersucc.jsp" />
+      </result>
+    </action>
+  </package>
+  <package name="myLogin" location="418,1340" size="225,108">
+    <action name="LoginAction" location="65,57" size="150,41">
+      <result name="Loginsucc">
+        <resourceEdge source="Loginsucc" routing="0" target="loginsucc.jsp" />
+      </result>
+    </action>
+  </package>
+  <package name="mySignout" location="180,745" size="225,304">
+    <action name="SignoutAction" location="65,57" size="150,41">
+      <result name="Signoutsucc">
+        <resourceEdge source="Signoutsucc" routing="0" target="index.jsp" />
+      </result>
+    </action>
+    <action name="fun_*" location="65,211" size="150,83">
+      <result name="funList">
+        <resourceEdge source="funList" routing="0" target="FunctionList.jsp" />
+      </result>
+      <result name="funDetail">
+        <resourceEdge source="funDetail" routing="0" target="FunctionDetail.jsp" />
+      </result>
+      <result name="allfunList">
+        <resourceEdge source="allfunList" routing="0" target="AllFunctionList.jsp" />
+      </result>
+    </action>
+  </package>
+  <package name="myTaskDetail" location="714,745" size="225,119">
+    <action name="task_*" location="65,47" size="150,62">
+      <result name="taskList">
+        <resourceEdge source="taskList" routing="0" target="TaskList.jsp" />
+      </result>
+      <result name="taskDetail">
+        <resourceEdge source="taskDetail" routing="0" target="TaskDetail.jsp" />
+      </result>
+    </action>
+  </package>
+  <webResource name="inputsucc.jsp" path="/inputsucc.jsp" location="1346,940" size="150,55" />
+  <webResource name="success.jsp" path="/ScilabExecute/success.jsp" location="837,555" size="150,55" />
+  <webResource name="ScilabTask.jsp" path="/ScilabExecute/ScilabTask.jsp" location="583,450" size="150,55" />
+  <webResource name="resultSucc.jsp" path="/ScilabExecute/resultSucc.jsp" location="340,450" size="150,55" />
+  <webResource name="resultFail.jsp" path="/ScilabExecute/resultFail.jsp" location="63,240" size="150,55" />
+  <webResource name="registersucc.jsp" path="/registersucc.jsp" location="113,1535" size="150,55" />
+  <webResource name="loginsucc.jsp" path="/loginsucc.jsp" location="506,1535" size="150,55" />
+  <webResource name="index.jsp" path="/index.jsp" location="515,765" size="150,55" />
+  <webResource name="FunctionList.jsp" path="/FunctionList.jsp" location="507,940" size="150,55" />
+  <webResource name="FunctionDetail.jsp" path="/FunctionDetail.jsp" location="255,1150" size="150,55" />
+  <webResource name="AllFunctionList.jsp" path="/AllFunctionList.jsp" location="10,940" size="150,55" />
+  <webResource name="TaskList.jsp" path="/TaskList.jsp" location="804,940" size="150,55" />
+  <webResource name="TaskDetail.jsp" path="/TaskDetail.jsp" location="1044,765" size="150,55" />
+</Struts2Diagram>
+
