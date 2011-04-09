@@ -39,7 +39,7 @@ public class TaskAction extends BaseAction {
 		if (userinfo == null) {
 			UserInfo userinfo_tmp = new UserInfo();
 			userinfo_tmp.setUserId((long) new Random().nextInt(10000) + 10000);//创建用户ID大于10000的session以区别注册用户
-			//System.out.println(userinfo_tmp.getUserId());
+			System.out.println(userinfo_tmp.getUserId());
 			userinfo_tmp.setUserName("usertmp");
 			getSession().setAttribute("usertmp", userinfo_tmp);
 			userId = userinfo_tmp.getUserId();
