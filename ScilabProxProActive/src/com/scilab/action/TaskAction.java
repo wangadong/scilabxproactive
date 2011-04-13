@@ -2,6 +2,12 @@ package com.scilab.action;
 
 import java.io.File;
 import java.util.Random;
+import java.util.Vector;
+
+import org.objectweb.proactive.core.ProActiveException;
+import org.objectweb.proactive.examples.masterworker.PIExample;
+import org.objectweb.proactive.extensions.masterworker.ProActiveMaster;
+import org.objectweb.proactive.extensions.masterworker.interfaces.Master;
 
 import com.scilab.manager.ScilabTaskHost;
 import com.scilab.manager.ScilabTaskHostService;
@@ -47,6 +53,19 @@ public class TaskAction extends BaseAction {
 		} else {
 			userId = userinfo.getUserId();
 		}
+		/*
+		 * 从这里开始加入了ProActive MW的东西
+		 */
+		ProActiveMaster<PATask,String> master=new ProActiveMaster<PATask,String>();
+		try {
+			master.addResources(PIExample.class.getResource("MWApplication.xml"));
+		} catch (ProActiveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Vector<PATask> tasks = new Vector<PATask>();
+		    tasks.add(new PATask(content));
+		master.solve(tasks);
 		//获取任务结果保存的绝对路径
 		resultFolder = getRequest().getRealPath("/") + "ScilabResult"
 				+ File.separatorChar + userId + File.separatorChar + taskname
