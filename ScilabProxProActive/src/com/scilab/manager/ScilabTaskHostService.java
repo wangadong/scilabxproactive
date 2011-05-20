@@ -8,8 +8,8 @@ package com.scilab.manager;
  * @see ScilabTaskHost
  */
 public class ScilabTaskHostService {
-	public static boolean setTaskMap(Task task) {
-		return ScilabTaskHost.getInstance().setTaskMap(task);
+	public static boolean setTaskMap(Task tasktmp) {
+		return ScilabTaskHost.getInstance().setTaskMap(tasktmp);
 	}
 
 	public static boolean submitTask(String taskname, String content,
