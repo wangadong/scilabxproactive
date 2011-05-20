@@ -25,7 +25,7 @@
 			<result name="Registersucc">/registersucc.jsp</result>
 		</action>
 	</package>
-	<package name="myLogin" namespace="/" extends="struts-default">
+	<package name="login" namespace="/" extends="struts-default">
 		<global-results>
 			<result name="notLogin">/login.jsp</result>
 		</global-results>

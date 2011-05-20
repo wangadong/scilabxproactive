@@ -2,6 +2,8 @@ package com.scilab.manager;
 
 import java.util.*;
 
+import org.objectweb.proactive.core.ProActiveException;
+import org.objectweb.proactive.examples.masterworker.PIExample;
 import org.objectweb.proactive.extensions.masterworker.ProActiveMaster;
 
 
@@ -44,6 +46,11 @@ public class PAMaster extends ProActiveMaster<PATask,String>{
 	public PAMaster(){
 	}
 	private PAMaster(String dis){
+		try {
+			this.addResources(PIExample.class.getResource("MWApplication.xml"));
+		} catch (ProActiveException e) {
+			e.printStackTrace();
+		}
 		System.out.println("MASTER CREATE SUCCESSFULLLY!");
 	}
 	/**
