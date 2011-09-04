@@ -3,11 +3,11 @@
   type="WEB"
   name="ScilabProxProActive"
   id="myeclipse.1278743994109"
-  context-root="/ScilabPro"
+  context-root="/ScilabProxProActive"
   j2ee-spec="5.0"
   archive="ScilabProxProActive.war">
   <attributes>
-    <attribute name="webrootdir" value="WebRoot" />
+    <attribute name="webrootdir" value="/WebRoot" />
   </attributes>
 </project-module>
 
