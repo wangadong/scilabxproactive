@@ -1,5 +1,6 @@
 package com.scilab.manager;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyException;
 import java.security.PublicKey;
@@ -18,13 +19,15 @@ import org.ow2.proactive.scheduler.common.exception.UserException;
 import org.ow2.proactive.scheduler.common.job.Job;
 import org.ow2.proactive.scheduler.common.job.JobEnvironment;
 import org.ow2.proactive.scheduler.common.job.JobId;
+import org.ow2.proactive.scheduler.common.job.JobPriority;
 import org.ow2.proactive.scheduler.common.job.TaskFlowJob;
 import org.ow2.proactive.scheduler.common.task.JavaTask;
 
 public class JobManager {
-	private static final JobManager _INSTANCE=new JobManager();
+	private static JobManager _INSTANCE=new JobManager();
 	private Scheduler scheduler;
 	private JobManager(){
+		System.out.println("开始注册scheduler");
 		try {
 		    SchedulerAuthenticationInterface auth = SchedulerConnection.waitAndJoin("rmi://localhost:1099");
 		    try {
@@ -41,66 +44,59 @@ public class JobManager {
 		        }
 		    }
 		} catch (Exception e) {
+			System.out.println("scheduler初始化异常");
 		    e.printStackTrace();
 		}
+		System.out.println("注册成功");
 	}
-	public JobId submit(String taskname, String content, long userId, String resultFolder){
-		System.out.print("任务开始提交");
-		TaskFlowJob job = new TaskFlowJob();
-		String i="One";
-		job.setName(userId+taskname+new Date()+"job");
-        job.setPriority(org.ow2.proactive.scheduler.common.job.JobPriority.NORMAL);
-        job.setCancelJobOnError(false);
-        job.setLogFile("~/test/log/file" + i + ".log");
-        job.setDescription("Job description" + i);
-        job.addGenericInformation("test", "" + i);
-        job.addGenericInformation("job", "" + i);
-        JobEnvironment je = new JobEnvironment();
-        try {
-        	je.setJobClasspath(new String[] {
-        			"","C:/ScilabDistribution/tomcat6.0/webapps/ScilabProxProActive/WEB-INF/classes/" });
-        	} catch (IOException e1) {
-        		e1.printStackTrace();
-        }
-        job.setEnvironment(je);
+	public JobId submit(String realpath, String taskname, String content, long userId, String resultFolder){
+		System.out.println("开始封装任务");
+		Date submitDate = new Date();
+		String name="user id"+userId+"task name"+taskname+"time"+submitDate.getTime();
+		String description =" of task \"" + taskname + "\"" +
+							" of user with id "+ userId +
+							" submitted at " +new Date();
+		TaskFlowJob job=wrapJob(realpath,name+"job","This is the job"+description);
 		JavaTask task=new JavaTask();
 		task.setExecutableClassName("com.scilab.scheduler.ResolveScilabCode");
-		//System.out.println(task.getExecutableClassName());
-		task.setName(userId+taskname+new Date()+"task");
+		task.setName(name + "task");
 		task.addArgument("scilabCode",content);
 		try {
 			job.addTask(task);
 		} catch (UserException e) {
 			e.printStackTrace();
 		}
+		System.out.println("开始提交任务");
 		return submitJob(job);
 	}
 	public JobId submitJob(Job job){
 	    JobId jobId=null;
 		try {
 			jobId = scheduler.submit(job);
-			/*留个白，不知是不是要在这获得结果
-			JobResult result;
-		    do{
-				result=scheduler.getJobResult(jobId);
-		   }while(result==null);
-		   */
+		}  catch (Exception e) {
+			e.printStackTrace();
 		}
-		/*
-		 * 你说我加这么多catch语句有用么？还是加一个就行啊
-		*/
-		  catch (NotConnectedException e) {
-			e.printStackTrace();
-		} catch (PermissionException e) {
-			e.printStackTrace();
-		} catch (SubmissionClosedException e) {
-			e.printStackTrace();
-		} catch (JobCreationException e) {
-			e.printStackTrace();
-		}// catch (UnknownJobException e) {
-		//	e.printStackTrace();
-		//}
 		return jobId;
+	}
+	public TaskFlowJob wrapJob(String realpath, String jobName, String jobDescription){
+		TaskFlowJob job = new TaskFlowJob();
+		System.out.println("开始封装任务job");
+		job.setName(jobName);
+        job.setPriority(JobPriority.NORMAL);
+        job.setCancelJobOnError(false);
+        job.setLogFile("~/test/log/file/" + jobName + ".log");
+        job.setDescription(jobDescription);
+        JobEnvironment je = new JobEnvironment();
+        try {
+        	je.setJobClasspath(new String[] {
+        			"",
+        			realpath +File.separatorChar + "WEB-INF" + File.separatorChar + "classes" });
+        } catch (IOException e1) {
+        		e1.printStackTrace();
+        }
+        job.setEnvironment(je);
+        System.out.println("任务job封装完毕");
+		return job;
 	}
 	public synchronized static JobManager getInstance(){
 			return _INSTANCE;
