@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.KeyException;
 import java.security.PublicKey;
 import java.util.Date;
+import java.util.Map;
 
 import org.ow2.proactive.authentication.crypto.CredData;
 import org.ow2.proactive.authentication.crypto.Credentials;
@@ -15,17 +16,23 @@ import org.ow2.proactive.scheduler.common.exception.JobCreationException;
 import org.ow2.proactive.scheduler.common.exception.NotConnectedException;
 import org.ow2.proactive.scheduler.common.exception.PermissionException;
 import org.ow2.proactive.scheduler.common.exception.SubmissionClosedException;
+import org.ow2.proactive.scheduler.common.exception.UnknownJobException;
 import org.ow2.proactive.scheduler.common.exception.UserException;
 import org.ow2.proactive.scheduler.common.job.Job;
 import org.ow2.proactive.scheduler.common.job.JobEnvironment;
 import org.ow2.proactive.scheduler.common.job.JobId;
 import org.ow2.proactive.scheduler.common.job.JobPriority;
+import org.ow2.proactive.scheduler.common.job.JobResult;
 import org.ow2.proactive.scheduler.common.job.TaskFlowJob;
 import org.ow2.proactive.scheduler.common.task.JavaTask;
 
 public class JobManager {
 	private static JobManager _INSTANCE=new JobManager();
 	private Scheduler scheduler;
+	private Map<String,JobId> idMap;
+	/*
+	 * 初始化
+	 */
 	private JobManager(){
 		System.out.println("开始注册scheduler");
 		try {
@@ -49,17 +56,21 @@ public class JobManager {
 		}
 		System.out.println("注册成功");
 	}
+	/*
+	 * 提交任务
+	 */
 	public JobId submit(String realpath, String taskname, String content, long userId, String resultFolder){
 		System.out.println("开始封装任务");
 		Date submitDate = new Date();
+		String id="user id"+userId+"task name"+taskname;
 		String name="user id"+userId+"task name"+taskname+"time"+submitDate.getTime();
 		String description =" of task \"" + taskname + "\"" +
 							" of user with id "+ userId +
 							" submitted at " +new Date();
-		TaskFlowJob job=wrapJob(realpath,name+"job","This is the job"+description);
+		TaskFlowJob job=wrapJob(realpath,name,"This is the job"+description);
 		JavaTask task=new JavaTask();
 		task.setExecutableClassName("com.scilab.scheduler.ResolveScilabCode");
-		task.setName(name + "task");
+		task.setName(name);
 		task.addArgument("scilabCode",content);
 		try {
 			job.addTask(task);
@@ -67,16 +78,38 @@ public class JobManager {
 			e.printStackTrace();
 		}
 		System.out.println("开始提交任务");
-		return submitJob(job);
+		JobId jid = submitJob(job);
+		idMap.put(id , jid);
+		return jid;
 	}
 	public JobId submitJob(Job job){
-	    JobId jobId=null;
+	    JobId id=null;
 		try {
-			jobId = scheduler.submit(job);
-		}  catch (Exception e) {
+			id=scheduler.submit(job);
+		} catch (NotConnectedException e) {
+			e.printStackTrace();
+		} catch (PermissionException e) {
+			e.printStackTrace();
+		} catch (SubmissionClosedException e) {
+			e.printStackTrace();
+		} catch (JobCreationException e) {
 			e.printStackTrace();
 		}
-		return jobId;
+		return id;
+	}
+	public JobResult getResult(JobId id){	
+		System.out.println("开始获取结果");
+		JobResult result=null;
+		try {
+			result=scheduler.getJobResult(id);
+		} catch (NotConnectedException e) {
+			e.printStackTrace();
+		} catch (PermissionException e) {
+			e.printStackTrace();
+		} catch (UnknownJobException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 	public TaskFlowJob wrapJob(String realpath, String jobName, String jobDescription){
 		TaskFlowJob job = new TaskFlowJob();
@@ -103,5 +136,8 @@ public class JobManager {
 	}
 	public Scheduler getScheduler(){
 		return scheduler;
+	}
+	public Map<String,JobId> getIdMap(){
+		return this.idMap;
 	}
 }

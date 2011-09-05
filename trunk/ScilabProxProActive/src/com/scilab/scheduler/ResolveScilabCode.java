@@ -48,7 +48,9 @@ public class ResolveScilabCode extends JavaExecutable{
         System.out.println("Task terminated");
         ArrayList<File> files=new ArrayList<File>();
         files.add(new File("E:/res.out"));
-        files.add(new File("E:/figure.png"));
+        File png = new File("E:/figure.png");
+        if(png.exists())
+        	files.add(png);
         return (files);
 	}
 	

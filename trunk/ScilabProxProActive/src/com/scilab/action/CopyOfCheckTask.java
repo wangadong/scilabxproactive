@@ -3,16 +3,7 @@ package com.scilab.action;
 import java.io.*;
 import java.util.*;
 
-import org.ow2.proactive.scheduler.common.exception.NotConnectedException;
-import org.ow2.proactive.scheduler.common.exception.PermissionException;
-import org.ow2.proactive.scheduler.common.exception.UnknownJobException;
-import org.ow2.proactive.scheduler.common.exception.UnknownTaskException;
-import org.ow2.proactive.scheduler.common.job.JobResult;
-import org.ow2.proactive.scheduler.common.job.JobState;
-import org.ow2.proactive.scheduler.common.task.TaskResult;
-
 import com.scilab.dao.impl.TaskDao;
-import com.scilab.manager.JobManager;
 import com.scilab.manager.ScilabTaskHost;
 import com.scilab.manager.ScilabTaskHostService;
 import com.scilab.manager.Task;
@@ -28,7 +19,7 @@ import com.scilab.pojo.UserInfo;
  * 
  * 
  */
-public class CheckTask extends BaseAction {
+public class CopyOfCheckTask extends BaseAction {
 	private String taskname;// 任务名，与页面对应
 	private String resultFolder;// 任务结果保存路径
 	private String taskStatue;// 任务状态
@@ -40,8 +31,7 @@ public class CheckTask extends BaseAction {
 	private String imgPath;// 结果图片保存相对地址
 	private String nodeName;
 	private String nodeIP;
-	private JobResult result;
-	private TaskResult tresult;
+
 	/**
 	 * 获取结果<br>
 	 * 从结果文档中读取结果并存为字符串在页面显示
@@ -51,51 +41,35 @@ public class CheckTask extends BaseAction {
 	 */
 	@SuppressWarnings("deprecation")
 	public String getResult() {
-		userId=calcUserId();
 		imgPath = null;
+		// 获取当前用户session，并得到用户ID
+		userinfo = (UserInfo) getSession().getAttribute("user");
+		if (userinfo == null) {
+			userinfo = (UserInfo) getSession().getAttribute("usertmp");
+		}
+		userId = userinfo.getUserId();
 		System.out.println(userId + taskname);
-		JobManager jm=JobManager.getInstance();
-		if(jm.getIdMap().containsKey(userId+taskname)){
-			
-			try {
-				result = jm.getScheduler().getJobResult(
-						jm.getIdMap().get(userId + taskname)
-						);
-			} catch (NotConnectedException e){
-				e.printStackTrace();
-			} catch (PermissionException e) {
-				e.printStackTrace();
-			} catch (UnknownJobException e) {
-				e.printStackTrace();
-			}
-		}
-		else
-			return "resultFail";
-		try {
-			tresult=result.getResult(result.getName());
-		} catch (UnknownTaskException e1) {
-			e1.printStackTrace();
-		}
-		ArrayList<File> list=null;
-		try {
-			list = (ArrayList<File>)tresult.value();
-		} catch (Throwable e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		File resultcode = list.get(0);
-		File png=null;
-		if(list.size()==2){
-			png = list.get(1);
-			imgPath=png.getPath();
-		}
-		else
+		if (ScilabTaskHostService.isExist(userId + taskname)) {
+			resultFolder = ScilabTaskHostService.getResult(userId + taskname);// 根据任务查询ID获取结果保存路径
+			nodeName=ScilabTaskHostService.getTaskByQueryId(userId + taskname).getNodeName();
+			nodeIP=ScilabTaskHostService.getTaskByQueryId(userId + taskname).getNodesIp();
+		} else
+			return "resultFail";// 若不存在此任务则跳转到错误页面
+		// 若存在图像，则提取图像保存路径
+		if (new File(getRequest().getRealPath("/") + "ScilabResult/" + userId
+				+ "/" + taskname + "/" + "figure0.png").exists()) {
+			System.out.println(getRequest().getRealPath("/") + "ScilabResult/"
+					+ userId + "/" + taskname + "/" + "figure0.png");
+			imgPath = "ScilabResult/" + userId + "/" + taskname + "/"
+					+ "figure0.png";
+		} else
 			imgPath = null;
 		// 从结果文档中读取字符流并保存为字符串格式
-		if (resultcode != null) {
+		if (resultFolder != null) {
 			try {
+				file = new File(resultFolder);
 				InputStreamReader isr = new InputStreamReader(
-						new FileInputStream(resultcode), "UTF-8");
+						new FileInputStream(file), "UTF-8");
 				BufferedReader br = new BufferedReader(isr);
 				String line = null;
 				StringBuffer result = new StringBuffer();
@@ -125,25 +99,18 @@ public class CheckTask extends BaseAction {
 	 */
 	public String getStatue() throws IOException {
 		// 获取任务查询ID
-		userId = calcUserId();
+		userinfo = (UserInfo) getSession().getAttribute("user");
+		if (userinfo == null) {
+			userinfo = (UserInfo) getSession().getAttribute("usertmp");
+		}
+		userId = userinfo.getUserId();
 		System.out.println(userId + taskname);
 		// Ajax
 		getResponse().setContentType("text/html; charset=utf-8");
 		getResponse().setHeader("Cache-Control", "no-cache"); // 不定义缓存
 		getResponse().setCharacterEncoding("utf-8");
 		PrintWriter out = getResponse().getWriter();
-		JobState js= null;
-		try {
-			js = JobManager.getInstance().getScheduler().getJobState(
-							JobManager.getInstance().getIdMap().get(userId + taskname));
-		} catch (NotConnectedException e) {
-			e.printStackTrace();
-		} catch (UnknownJobException e) {
-			e.printStackTrace();
-		} catch (PermissionException e) {
-			e.printStackTrace();
-		}// 获取任务状态
-		taskStatue = js.toString();
+		taskStatue=ScilabTaskHostService.getTaskStatue(userId + taskname);// 获取任务状态
 		out.write(taskStatue);
 		out.close();// 输出状态内容
 		System.out.println(taskStatue);
@@ -158,35 +125,36 @@ public class CheckTask extends BaseAction {
 	 */
 	public String saveTask() throws IOException {
 		//获取任务查询ID
-		userId = calcUserId();
+		userinfo = (UserInfo) getSession().getAttribute("user");
+		if (userinfo == null) {
+			userinfo = (UserInfo) getSession().getAttribute("usertmp");
+		}
+		userId = userinfo.getUserId();
 		String saveStatue;
-		JobManager jm=JobManager.getInstance();
 		//userID<10000为注册用户
 		if (userId < 10000) {
 			System.out.println(userId + taskname);
 			saveStatue = "Unable to save !";
 			// 判断该用户的该任务名是否存在
-			if (jm.getIdMap().containsKey(userId + taskname)){
-				TaskInfo ti=dao.isExist(taskname, userId);
-				if(ti == null){
-					ti =new TaskInfo();
+			if (ScilabTaskHost.getInstance().getTaskMap().containsKey(
+					userId + taskname)) {
+				Task task = ScilabTaskHostService.getTaskByQueryId(userId
+						+ taskname);
+				//将当前任务保存成数据库POJO类
+				TaskInfo taskinfo = dao.isExist(task.getTaskName(), userId);
+				if (taskinfo == null) {
+					taskinfo = new TaskInfo();
 				}
-				ti.setTaskName(taskname);
-				ti.setUserId(userId);
-				try {
-					ti.setTaskStatue(jm.getScheduler().getJobState(
-							jm.getIdMap().get(userId + taskname)
-							).toString());
-				} catch (NotConnectedException e) {
-					e.printStackTrace();
-				} catch (UnknownJobException e) {
-					e.printStackTrace();
-				} catch (PermissionException e) {
-					e.printStackTrace();
-				}
+				taskinfo.setTaskName(task.getTaskName());
+				taskinfo.setUserId(userId);
+				taskinfo.setTaskStatue(task.getStatue());
+				taskinfo.setTaskContent(task.getContent());
+				taskinfo.setResultFolder(task.getResultFolder());
+				taskinfo.setSaveTime(new Date());
+				taskinfo.setNodeID(task.getNodesId());//执行任务的节点ID
 				TaskDao dao = new TaskDao();//建立数据库连接
 				//保存任务到数据库
-				if (dao.saveOrUpdateTask(ti)) {
+				if (dao.saveOrUpdateTask(taskinfo)) {
 					saveStatue = "Task saved successfully !";
 				}
 			}
@@ -202,15 +170,7 @@ public class CheckTask extends BaseAction {
 		out.close();
 		return null;//Ajax输出，不进行页面跳转
 	}
-	
-	public long calcUserId(){
-		// 获取当前用户session，并得到用户ID
-		userinfo = (UserInfo) getSession().getAttribute("user");
-		if (userinfo == null) {
-			userinfo = (UserInfo) getSession().getAttribute("usertmp");
-		}
-		return userinfo.getUserId();
-	}
+
 	public String getTaskStatue() {
 		return taskStatue;
 	}
