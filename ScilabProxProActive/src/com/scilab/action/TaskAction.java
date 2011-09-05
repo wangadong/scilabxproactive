@@ -44,6 +44,7 @@ public class TaskAction extends BaseAction {
 				+ File.separatorChar + userId + taskname + ".txt";
 		JobId id = JobManager.getInstance().submit( realpath,taskname, content, userId, resultFolder);
 		boolean bool=((id == null)?true:false);
+		
 		//创建页面新增任务列表代码
 		setMessage("Task Name：" + taskname
 				+ "<a href='./CheckTask!getResult?taskname=" + taskname
