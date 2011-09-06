@@ -6,7 +6,6 @@ import java.util.Random;
 import org.ow2.proactive.scheduler.common.job.JobId;
 
 import com.scilab.manager.JobManager;
-import com.scilab.manager.ScilabTaskHost;
 import com.scilab.manager.Task;
 import com.scilab.pojo.TaskInfo;
 import com.scilab.pojo.UserInfo;
@@ -50,8 +49,10 @@ public class TaskAction extends BaseAction {
 				+ "<a href='./CheckTask!getResult?taskname=" + taskname
 				+ "'>Check the Result</a>     <a href='./CheckTask!saveTask?taskname="
 				+ taskname + "'>Save my Task</a>");
-		if (bool)
+		if (bool){
+			System.out.println("提交成功，跳转至成功页面");
 			return SUCCESS;//提交成功则跳转成功页面
+		}
 		else
 			return ERROR;//提交错误则跳转错误页面
 	}
