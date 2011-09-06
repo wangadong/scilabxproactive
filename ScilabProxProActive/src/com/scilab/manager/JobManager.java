@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.KeyException;
 import java.security.PublicKey;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.ow2.proactive.authentication.crypto.CredData;
@@ -23,6 +24,8 @@ import org.ow2.proactive.scheduler.common.job.JobEnvironment;
 import org.ow2.proactive.scheduler.common.job.JobId;
 import org.ow2.proactive.scheduler.common.job.JobPriority;
 import org.ow2.proactive.scheduler.common.job.JobResult;
+import org.ow2.proactive.scheduler.common.job.JobState;
+import org.ow2.proactive.scheduler.common.job.JobStatus;
 import org.ow2.proactive.scheduler.common.job.TaskFlowJob;
 import org.ow2.proactive.scheduler.common.task.JavaTask;
 
@@ -34,6 +37,9 @@ public class JobManager {
 	 * 初始化
 	 */
 	private JobManager(){
+		idMap = new HashMap<String,JobId>();
+	}
+	public void initConn(){
 		System.out.println("开始注册scheduler");
 		try {
 		    SchedulerAuthenticationInterface auth = SchedulerConnection.waitAndJoin("rmi://localhost:1099");
@@ -47,7 +53,8 @@ public class JobManager {
 		            }
 		            scheduler = auth.login(Credentials.createCredentials(new CredData("user", "pwd"), pubKey));
 		        } catch (KeyException ke2) {
-		            //cannot find public key !
+		            System.out.println("无法获得公钥");
+		            ke2.printStackTrace();
 		        }
 		    }
 		} catch (Exception e) {
@@ -60,9 +67,13 @@ public class JobManager {
 	 * 提交任务
 	 */
 	public JobId submit(String realpath, String taskname, String content, long userId, String resultFolder){
+		System.out.println("判断是否与scheduler有连接");
+		if((scheduler == null) || (!scheduler.isConnected())){
+			initConn();
+		}
 		System.out.println("开始封装任务");
 		Date submitDate = new Date();
-		String id="user id"+userId+"task name"+taskname;
+		String id=userId+taskname;
 		String name="user id"+userId+"task name"+taskname+"time"+submitDate.getTime();
 		String description =" of task \"" + taskname + "\"" +
 							" of user with id "+ userId +
@@ -79,12 +90,15 @@ public class JobManager {
 		}
 		System.out.println("开始提交任务");
 		JobId jid = submitJob(job);
+		System.out.println("准备返回");
 		idMap.put(id , jid);
+		System.out.println("idMap更新完毕");
 		return jid;
 	}
 	public JobId submitJob(Job job){
 	    JobId id=null;
 		try {
+			System.out.println("提交到scheduler");
 			id=scheduler.submit(job);
 		} catch (NotConnectedException e) {
 			e.printStackTrace();
@@ -95,9 +109,14 @@ public class JobManager {
 		} catch (JobCreationException e) {
 			e.printStackTrace();
 		}
+		System.out.println("提交完毕，准备返回job id");
 		return id;
 	}
-	public JobResult getResult(JobId id){	
+	public JobResult getResult(JobId id){
+		System.out.println("判断是否与scheduler有连接");
+		if((scheduler == null) || (!scheduler.isConnected())){
+			initConn();
+		}
 		System.out.println("开始获取结果");
 		JobResult result=null;
 		try {
@@ -110,6 +129,27 @@ public class JobManager {
 			e.printStackTrace();
 		}
 		return result;
+	}
+	public JobState getStatus(JobId id,String taskId){
+		System.out.println("判断是否与scheduler有连接");
+		if((scheduler == null) || (!scheduler.isConnected())){
+			initConn();
+		}
+		System.out.println("开始获取Job状态");
+		JobState js=null;
+		try {
+			js = JobManager.getInstance().getScheduler().getJobState(
+							JobManager.getInstance().getIdMap().get(taskId)
+							);
+			System.out.println(js);
+		} catch (NotConnectedException e) {
+			e.printStackTrace();
+		} catch (UnknownJobException e) {
+			e.printStackTrace();
+		} catch (PermissionException e) {
+			e.printStackTrace();
+		}// 获取任务状态
+		return js;
 	}
 	public TaskFlowJob wrapJob(String realpath, String jobName, String jobDescription){
 		TaskFlowJob job = new TaskFlowJob();
