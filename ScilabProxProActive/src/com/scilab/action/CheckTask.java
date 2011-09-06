@@ -13,8 +13,6 @@ import org.ow2.proactive.scheduler.common.task.TaskResult;
 
 import com.scilab.dao.impl.TaskDao;
 import com.scilab.manager.JobManager;
-import com.scilab.manager.ScilabTaskHost;
-import com.scilab.manager.ScilabTaskHostService;
 import com.scilab.manager.Task;
 import com.scilab.pojo.TaskInfo;
 import com.scilab.pojo.UserInfo;
@@ -132,18 +130,12 @@ public class CheckTask extends BaseAction {
 		getResponse().setHeader("Cache-Control", "no-cache"); // 不定义缓存
 		getResponse().setCharacterEncoding("utf-8");
 		PrintWriter out = getResponse().getWriter();
-		JobState js= null;
-		try {
-			js = JobManager.getInstance().getScheduler().getJobState(
-							JobManager.getInstance().getIdMap().get(userId + taskname));
-		} catch (NotConnectedException e) {
-			e.printStackTrace();
-		} catch (UnknownJobException e) {
-			e.printStackTrace();
-		} catch (PermissionException e) {
-			e.printStackTrace();
-		}// 获取任务状态
-		taskStatue = js.toString();
+		JobState js= JobManager.getInstance().getStatus(
+					JobManager.getInstance().getIdMap().get(userId + taskname),
+					userId + taskname
+				);
+		js.getTasks();
+		taskStatue = js.getStatus().toString();
 		out.write(taskStatue);
 		out.close();// 输出状态内容
 		System.out.println(taskStatue);
