@@ -1,7 +1,10 @@
 package com.scilab.action;
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+
+import javax.imageio.ImageIO;
 
 import org.ow2.proactive.scheduler.common.exception.NotConnectedException;
 import org.ow2.proactive.scheduler.common.exception.PermissionException;
@@ -74,23 +77,41 @@ public class CheckTask extends BaseAction {
 		} catch (UnknownTaskException e1) {
 			e1.printStackTrace();
 		}
-		ArrayList<File> list=null;
+		ArrayList<Object> list=null;
 		try {
-			list = (ArrayList<File>)tresult.value();
+			list = (ArrayList<Object>)tresult.value();
 		} catch (Throwable e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		File resultcode = list.get(0);
-		File png=null;
+		String resultcode = (String) list.get(0);
+		BufferedImage png=null;
 		if(list.size()==2){
-			png = list.get(1);
-			imgPath=png.getPath();
+			png = (BufferedImage) list.get(1);
+			imgPath="C:\\ScilabCloudV2\\result"+
+			File.separator+userId+File.separator+taskname+File.separator+"result.png";
+			File myFilePath = new File(imgPath).getParentFile();
+			if (!myFilePath.exists()) {
+				if (myFilePath.mkdirs())
+					System.out.println("创建文件目录" + myFilePath);
+			} else {
+				if (deleteFile(myFilePath))
+					System.out.println("删除目录");
+				if (!myFilePath.exists())
+					System.out.println("更新成功");
+				myFilePath.mkdirs();
+			}
+			try {
+				ImageIO.write(png, "png",new File(imgPath) );
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		else
 			imgPath = null;
 		// 从结果文档中读取字符流并保存为字符串格式
 		if (resultcode != null) {
+			/*
 			try {
 				InputStreamReader isr = new InputStreamReader(
 						new FileInputStream(resultcode), "UTF-8");
@@ -110,6 +131,10 @@ public class CheckTask extends BaseAction {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			*/
+			resultContent = resultcode;
+			System.out.println(resultcode);
+			
 			return "resultSucc";
 		}
 		return "resultFail";
@@ -257,5 +282,22 @@ public class CheckTask extends BaseAction {
 
 	public String getNodeIP() {
 		return nodeIP;
+	}
+	// 删除文件及文件夹
+	public boolean deleteFile(File f) {
+		if (f.exists()) {
+			if (f.isFile())
+				return f.delete();
+			else if (f.isDirectory()) {
+				File[] files = f.listFiles();
+				for (int i = 0; i < files.length; i++) {
+					if (!deleteFile(files[i]))
+						return false;
+				}
+				return f.delete();
+			} else
+				return false;
+		} else
+			return true;
 	}
 }

@@ -82,7 +82,10 @@ public class JobManager {
 		JavaTask task=new JavaTask();
 		task.setExecutableClassName("com.scilab.scheduler.ResolveScilabCode");
 		task.setName(name);
+		
 		task.addArgument("scilabCode",content);
+		task.addArgument("userId", String.valueOf(userId));
+		task.addArgument("taskName", taskname);
 		try {
 			job.addTask(task);
 		} catch (UserException e) {

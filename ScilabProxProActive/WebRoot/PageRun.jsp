@@ -281,7 +281,7 @@ function MM_nbGroup(event, grpName) { //v6.0
 				<input type="text" name="task.taskName" id="myForm_taskName" />
 			</p>
 			<textarea id="scilabtask_1" style="height: 500px; width: 450px;"
-				name="task.taskContent">//Scilab Code Sample
+				name="task.taskContent">
 a=rand(10,10);
 disp(a);
 plot(a);
