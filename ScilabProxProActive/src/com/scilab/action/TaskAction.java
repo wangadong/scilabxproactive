@@ -13,15 +13,12 @@ import com.scilab.pojo.UserInfo;
 /**
  * action 任务提交
  * 
- * @author wangadong
+ * @author remi liu
  * @version 1.0
- * @see ScilabTaskHost
+ * @see JobManager
  * @see Task
  */
 public class TaskAction extends BaseAction {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	TaskInfo task;// 任务POJO类
 	private String taskname;// 任务名
