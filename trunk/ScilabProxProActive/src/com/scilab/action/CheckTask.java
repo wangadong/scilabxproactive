@@ -23,10 +23,8 @@ import com.scilab.pojo.UserInfo;
 /**
  * action 获取结果，查询状态，保存任务
  * 
- * @author wangadong
- * @version 1.0
- * @see ScilabTaskHost
- * 
+ * @author remi liu , wangadong
+ * @version 2.0
  * 
  */
 public class CheckTask extends BaseAction {
@@ -73,6 +71,9 @@ public class CheckTask extends BaseAction {
 		else
 			return "resultFail";
 		try {
+			if(result==null)
+				return
+					"resultFail";
 			tresult=result.getResult(result.getName());
 		} catch (UnknownTaskException e1) {
 			e1.printStackTrace();
@@ -150,7 +151,6 @@ public class CheckTask extends BaseAction {
 		// 获取任务查询ID
 		userId = calcUserId();
 		System.out.println(userId + taskname);
-		// Ajax
 		getResponse().setContentType("text/html; charset=utf-8");
 		getResponse().setHeader("Cache-Control", "no-cache"); // 不定义缓存
 		getResponse().setCharacterEncoding("utf-8");
@@ -166,7 +166,7 @@ public class CheckTask extends BaseAction {
 		System.out.println(taskStatue);
 		return null;
 	}
-
+	
 	/**
 	 * 保存任务到数据库
 	 * 
@@ -174,7 +174,6 @@ public class CheckTask extends BaseAction {
 	 * @throws IOException
 	 */
 	public String saveTask() throws IOException {
-		//获取任务查询ID
 		userId = calcUserId();
 		String saveStatue;
 		JobManager jm=JobManager.getInstance();
@@ -182,7 +181,6 @@ public class CheckTask extends BaseAction {
 		if (userId < 10000) {
 			System.out.println(userId + taskname);
 			saveStatue = "Unable to save !";
-			// 判断该用户的该任务名是否存在
 			if (jm.getIdMap().containsKey(userId + taskname)){
 				TaskInfo ti=dao.isExist(taskname, userId);
 				if(ti == null){
@@ -190,6 +188,7 @@ public class CheckTask extends BaseAction {
 				}
 				ti.setTaskName(taskname);
 				ti.setUserId(userId);
+				ti.setSaveTime(new Date());
 				try {
 					ti.setTaskStatue(jm.getScheduler().getJobState(
 							jm.getIdMap().get(userId + taskname)
@@ -283,7 +282,7 @@ public class CheckTask extends BaseAction {
 	public String getNodeIP() {
 		return nodeIP;
 	}
-	// 删除文件及文件夹
+	
 	public boolean deleteFile(File f) {
 		if (f.exists()) {
 			if (f.isFile())
