@@ -28,11 +28,6 @@ public class FunInputAction extends BaseAction {
 	public String getUsername() {
 		return Username;
 	}
-
-
-
-	
-
 	public FunctionInfo getFunctionInfo() {
 		return functionInfo;
 	}
