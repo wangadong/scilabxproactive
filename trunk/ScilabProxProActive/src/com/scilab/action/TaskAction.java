@@ -13,8 +13,8 @@ import com.scilab.pojo.UserInfo;
 /**
  * action 任务提交
  * 
- * @author remi liu
- * @version 1.0
+ * @author remi liu, wangadong
+ * @version 2.0
  * @see JobManager
  * @see Task
  */
@@ -46,10 +46,8 @@ public class TaskAction extends BaseAction {
 				+ "<a href='./CheckTask!getResult?taskname=" + taskname
 				+ "'>Check the Result</a>     <a href='./CheckTask!saveTask?taskname="
 				+ taskname + "'>Save my Task</a>");
-		if (bool){
-			System.out.println("提交成功，跳转至成功页面");
+		if (bool)
 			return SUCCESS;//提交成功则跳转成功页面
-		}
 		else
 			return ERROR;//提交错误则跳转错误页面
 	}
