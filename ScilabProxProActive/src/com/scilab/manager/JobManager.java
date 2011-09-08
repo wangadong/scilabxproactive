@@ -40,7 +40,7 @@ public class JobManager {
 		idMap = new HashMap<String,JobId>();
 	}
 	public void initConn(){
-		System.out.println("开始注册scheduler");
+		System.out.println("[ScilabCloud] Start connecting to scheduler");
 		try {
 		    SchedulerAuthenticationInterface auth = SchedulerConnection.waitAndJoin("rmi://localhost:1099");
 		    try {
@@ -53,25 +53,25 @@ public class JobManager {
 		            }
 		            scheduler = auth.login(Credentials.createCredentials(new CredData("user", "pwd"), pubKey));
 		        } catch (KeyException ke2) {
-		            System.out.println("无法获得公钥");
+		            System.out.println("[ScilabCloud] can not get public key");
 		            ke2.printStackTrace();
 		        }
 		    }
 		} catch (Exception e) {
-			System.out.println("scheduler初始化异常");
+			System.out.println("[ScilabCloud] scheduler init error");
 		    e.printStackTrace();
 		}
-		System.out.println("注册成功");
+		System.out.println("[ScilabCloud] Connect success");
 	}
 	/*
 	 * 提交任务
 	 */
 	public JobId submit(String realpath, String taskname, String content, long userId, String resultFolder){
-		System.out.println("判断是否与scheduler有连接");
+		System.out.println("[ScilabCloud] Testing the connect with scheduler");
 		if((scheduler == null) || (!scheduler.isConnected())){
 			initConn();
 		}
-		System.out.println("开始封装任务");
+		System.out.println("[ScilabCloud] start wrapping task");
 		Date submitDate = new Date();
 		String id=userId+taskname;
 		String name="user id"+userId+"task name"+taskname+"time"+submitDate.getTime();
@@ -80,7 +80,7 @@ public class JobManager {
 							" submitted at " +new Date();
 		TaskFlowJob job=wrapJob(realpath,name,"This is the job"+description);
 		JavaTask task=new JavaTask();
-		task.setExecutableClassName("com.scilab.scheduler.ResolveScilabCode");
+		task.setExecutableClassName("com.scilab.execution.ResolveScilabCode");
 		task.setName(name);
 		
 		task.addArgument("scilabCode",content);
@@ -91,17 +91,15 @@ public class JobManager {
 		} catch (UserException e) {
 			e.printStackTrace();
 		}
-		System.out.println("开始提交任务");
+		System.out.println("[ScilabCloud] start submit task to scheduler");
 		JobId jid = submitJob(job);
-		System.out.println("准备返回");
 		idMap.put(id , jid);
-		System.out.println("idMap更新完毕");
+		System.out.println("[ScilabCloud] id map updated");
 		return jid;
 	}
 	public JobId submitJob(Job job){
 	    JobId id=null;
 		try {
-			System.out.println("提交到scheduler");
 			id=scheduler.submit(job);
 		} catch (NotConnectedException e) {
 			e.printStackTrace();
@@ -112,15 +110,15 @@ public class JobManager {
 		} catch (JobCreationException e) {
 			e.printStackTrace();
 		}
-		System.out.println("提交完毕，准备返回job id");
+		System.out.println("[ScilabCloud] Submit finish, return job id");
 		return id;
 	}
 	public JobResult getResult(JobId id){
-		System.out.println("判断是否与scheduler有连接");
+		System.out.println("[ScilabCloud] Testing the connect with scheduler");
 		if((scheduler == null) || (!scheduler.isConnected())){
 			initConn();
 		}
-		System.out.println("开始获取结果");
+		System.out.println("[ScilabCloud] Getting the result");
 		JobResult result=null;
 		try {
 			result=scheduler.getJobResult(id);
@@ -134,11 +132,11 @@ public class JobManager {
 		return result;
 	}
 	public JobState getStatus(JobId id,String taskId){
-		System.out.println("判断是否与scheduler有连接");
+		System.out.println("[ScilabCloud] Testing the connect with scheduler");
 		if((scheduler == null) || (!scheduler.isConnected())){
 			initConn();
 		}
-		System.out.println("开始获取Job状态");
+		System.out.println("[ScilabCloud] getting state of task");
 		JobState js=null;
 		try {
 			js = JobManager.getInstance().getScheduler().getJobState(
@@ -156,7 +154,7 @@ public class JobManager {
 	}
 	public TaskFlowJob wrapJob(String realpath, String jobName, String jobDescription){
 		TaskFlowJob job = new TaskFlowJob();
-		System.out.println("开始封装任务job");
+		System.out.println("[ScilabCloud] Start wrapping job");
 		job.setName(jobName);
         job.setPriority(JobPriority.NORMAL);
         job.setCancelJobOnError(false);
@@ -171,7 +169,7 @@ public class JobManager {
         		e1.printStackTrace();
         }
         job.setEnvironment(je);
-        System.out.println("任务job封装完毕");
+        System.out.println("[ScilabCloud] Job wrapping finished");
 		return job;
 	}
 	public synchronized static JobManager getInstance(){
