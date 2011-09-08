@@ -1,10 +1,7 @@
 package com.scilab.action;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
-
-import javax.imageio.ImageIO;
 
 import org.ow2.proactive.scheduler.common.exception.NotConnectedException;
 import org.ow2.proactive.scheduler.common.exception.PermissionException;
@@ -16,7 +13,7 @@ import org.ow2.proactive.scheduler.common.task.TaskResult;
 
 import com.scilab.dao.impl.TaskDao;
 import com.scilab.manager.JobManager;
-import com.scilab.manager.Task;
+
 import com.scilab.pojo.TaskInfo;
 import com.scilab.pojo.UserInfo;
 
@@ -37,8 +34,6 @@ public class CheckTask extends BaseAction {
 	private String resultContent;// scilab代码，与页面代码对应
 	private File file;
 	private String imgPath;// 结果图片保存相对地址
-	private String nodeName;
-	private String nodeIP;
 	private JobResult result;
 	private TaskResult tresult;
 	/**
@@ -86,53 +81,40 @@ public class CheckTask extends BaseAction {
 			e1.printStackTrace();
 		}
 		String resultcode = (String) list.get(0);
-		BufferedImage png=null;
 		if(list.size()==2){
-			png = (BufferedImage) list.get(1);
-			imgPath="C:\\ScilabCloudV2\\result"+
-			File.separator+userId+File.separator+taskname+File.separator+"result.png";
+		    System.out.println("return the png");
+		    imgPath=getRequest().getRealPath("/") + "ScilabResult/" + userId
+			+ "/" + taskname + "/" + "figure0.png";
 			File myFilePath = new File(imgPath).getParentFile();
 			if (!myFilePath.exists()) {
 				if (myFilePath.mkdirs())
-					System.out.println("创建文件目录" + myFilePath);
+					System.out.println("create folder" + myFilePath);
 			} else {
 				if (deleteFile(myFilePath))
-					System.out.println("删除目录");
+					System.out.println("delete folder");
 				if (!myFilePath.exists())
-					System.out.println("更新成功");
+					System.out.println("update success");
 				myFilePath.mkdirs();
 			}
-			try {
-				ImageIO.write(png, "png",new File(imgPath) );
+		    byte[] png=(byte[])list.get(1);
+		    File f=new File(imgPath);
+		   	try {
+				f.createNewFile();
+			   	BufferedOutputStream output = new BufferedOutputStream(
+			   			new FileOutputStream(f));
+			   	output.write(png);
+		    	output.flush();
+		    	output.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			imgPath = "ScilabResult/" + userId + "/" + taskname + "/"
+			+ "figure0.png";
 		}
 		else
 			imgPath = null;
 		// 从结果文档中读取字符流并保存为字符串格式
 		if (resultcode != null) {
-			/*
-			try {
-				InputStreamReader isr = new InputStreamReader(
-						new FileInputStream(resultcode), "UTF-8");
-				BufferedReader br = new BufferedReader(isr);
-				String line = null;
-				StringBuffer result = new StringBuffer();
-				while ((line = br.readLine()) != null) {
-					result.append(line);
-					result.append("<br>");// 添加页面换行符
-				}
-				resultContent = result.toString();
-				System.out.println(resultContent);
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			} catch (FileNotFoundException e) {
-				return "resultFail";//结果文件不存在，跳转查询失败页面
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			*/
 			resultContent = resultcode;
 			System.out.println(resultcode);
 			
@@ -265,22 +247,6 @@ public class CheckTask extends BaseAction {
 
 	public void setResultFolder(String resultFolder) {
 		this.resultFolder = resultFolder;
-	}
-
-	public String getNodeName() {
-		return nodeName;
-	}
-
-	public void setNodeName(String nodeName) {
-		nodeName = nodeName;
-	}
-
-	public void setNodeIP(String nodeIP) {
-		this.nodeIP = nodeIP;
-	}
-
-	public String getNodeIP() {
-		return nodeIP;
 	}
 	
 	public boolean deleteFile(File f) {
